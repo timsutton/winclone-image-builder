@@ -1,0 +1,102 @@
+{
+  "builders": [
+    {
+      "type": "vmware-iso",
+      "iso_url": "iso/SW_DVD9_SA_Win_Ent_8.1_64BIT_English_-3_MLF_X19-84068.ISO",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "115d7c4203417e52c09d16b50043b10d",
+      "headless": false,
+      "boot_wait": "1m",
+	  "skip_compaction": true,
+	  "communicator": "winrm",
+      "winrm_username": "vagrant",
+      "winrm_password": "vagrant",
+	  "winrm_timeout": "4h",
+      "shutdown_command": "a:\\run_sysprep.bat",
+	  "guest_os_type": "windows7-64",
+      "disk_size": 61440,
+      "vnc_port_min": 5900,
+      "vnc_port_max": 5980,
+      "floppy_files": [
+        "./answer_files/81/Autounattend.xml",
+        "./answer_files/7/unattend_capture.xml",
+		"./scripts/Synchronous-ZipAndUnzip.psm1",
+        "./scripts/WinSAT.cmd",
+        "./scripts/WinSAT.reg",
+        "./scripts/brigadier.cmd",
+        "./scripts/copy_files.ps1",
+        "./scripts/microsoft-updates.bat",
+		"./scripts/run_sysprep.bat",
+		"./scripts/winrm.bat",
+        "./scripts/win-updates.ps1"
+      ],
+      "vmx_data": {
+        "RemoteDisplay.vnc.enabled": "false",
+        "RemoteDisplay.vnc.port": "5900",
+        "memsize": "4096",
+        "numvcpus": "2",
+        "scsi0.virtualDev": "lsisas1068"
+      }
+    },
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "iso/SW_DVD9_SA_Win_Ent_8.1_64BIT_English_-3_MLF_X19-84068.ISO",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "115d7c4203417e52c09d16b50043b10d",
+      "headless": false,
+      "boot_wait": "2m",
+	  "communicator": "winrm",
+      "winrm_username": "vagrant",
+      "winrm_password": "vagrant",
+	  "winrm_timeout": "12h",
+      "shutdown_command": "a:\\run_sysprep.bat",
+	  "guest_additions_mode": "disable",
+	  "guest_os_type": "Windows7_64",
+      "disk_size": 61440,
+      "floppy_files": [
+        "./answer_files/81/Autounattend.xml",
+        "./answer_files/81/unattend_capture.xml",
+		"./scripts/Synchronous-ZipAndUnzip.psm1",
+        "./scripts/WinSAT.cmd",
+        "./scripts/WinSAT.reg",
+        "./scripts/brigadier.cmd",
+        "./scripts/copy_files.ps1",
+        "./scripts/microsoft-updates.bat",
+		"./scripts/run_sysprep.bat",
+		"./scripts/winrm.bat",
+        "./scripts/win-updates.ps1"
+      ],
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "4096"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "2"
+        ]
+	  ]
+    }
+  ],
+  "provisioners": [
+      {
+        "type": "powershell",
+        "scripts": [
+		  "./scripts/copy-windrivers.ps1"
+        ]
+      },
+	  {
+	        "type": "powershell",
+	        "inline": [ "echo \"Restart Computer\"; Start-Sleep 5; Restart-Computer -force" ]
+	  },
+	  {
+	        "pause_before": "20s",
+	        "type": "powershell",
+	        "inline": [ "echo \"Sleep 60\"; Start-Sleep 60" ]
+	  }
+  ]
+}
