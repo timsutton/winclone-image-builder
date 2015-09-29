@@ -16,6 +16,8 @@ This seems to work mostly for Windows 7 and Windows 10, but because I've had min
 
 The Packer template is very close to those provided in Joe Fitzgerald's packer-windows repo. A couple key additions, however: there are some post-restore actions to install Boot Camp drivers using [Brigadier](https://github.com/timsutton/brigadier), and for use with older versions of Windows, a sample of copying the ethernet drivers from several Boot Camp ESDs to be included in `C:\Windows\INF` so that on initial restore they are present and loaded for Brigadier's Boot Camp installation process. This is particularly required for Windows 7, which does not have many of the needed Ethernet drivers.
 
+The way that we perform a sysprep is to send the sysprep command _as the shutdown command_ in the Packer template. There are some additional reboot loops that are added at the end of the template to work around an issue with WinRM timeouts confusing the build phase.
+
 ## Capture phase
 
 `./run_build.py [--platform <option>] -s capture`

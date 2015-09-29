@@ -140,8 +140,9 @@
                     <Description>Enable Microsoft Updates</Description>
                 </SynchronousCommand> -->
 
+<!-- Add "-SkipUpdates true" to the command below to skip updates, for speeding up testing -->
                 <SynchronousCommand wcm:action="add">
-                    <CommandLine>cmd.exe /c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File a:\win-updates.ps1 -SkipUpdates true -MaxUpdatesPerCycle 50 -DoneScript a:\winrm.bat</CommandLine>
+                    <CommandLine>cmd.exe /c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File a:\win-updates.ps1 -MaxUpdatesPerCycle 50 -DoneScript a:\winrm.bat</CommandLine>
                     <Description>Install Windows Updates</Description>
                     <Order>100</Order>
                     <RequiresUserInput>true</RequiresUserInput>
