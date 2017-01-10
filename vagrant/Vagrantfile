@@ -12,7 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   %w(virtualbox vmware_fusion).each do |provider|
     config.vm.provider provider do |v|
-      v.cpus = 4
+      v.cpus = 8
       v.memory = 4096
       # v.gui = true
     end
