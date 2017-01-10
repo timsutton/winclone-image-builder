@@ -5,10 +5,10 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # use PuPHPet because they provide both virtualbox and vmware_desktop
-  config.vm.box = "puphpet/ubuntu1404-x64"
+  config.vm.box = "puphpet/ubuntu1604-x64"
   # Pinning to older version as newer version v20161004 seems to not have proper
   # VMware tools configuration
-  config.vm.box_version = '=20151201'
+  config.vm.box_version = '=20161102'
 
   %w(virtualbox vmware_fusion).each do |provider|
     config.vm.provider provider do |v|
