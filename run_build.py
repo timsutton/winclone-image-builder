@@ -270,10 +270,17 @@ than one can be added in one run. Some
             env["VDI_PATH"] = glob(os.path.join(packer_vm_dir, '*.vdi'))[0]
             # win_vmdk_path = glob(packer_vm_dir + '/*.vmdk')[0]
 
+        img_file = 'boot.img.gz'
+        if opts.image_format == 'wim':
+            img_file = 'boot.wim'
+
         # Setup environment vars for this Vagrant instantiation
         env["OUTPUT_IMAGE_FORMAT"] = opts.image_format
         env["VAGRANT_DEFAULT_PROVIDER"] = \
             PLATFORMS[opts.platform]['vagrant_provider']
+
+        img_output_root = '/vagrant'
+        env["OUTPUT_PATH"] = os.path.join(img_output_root, img_file)
 
         # Vagrant up
         subprocess.call([vagrant_bin, 'up'], cwd=vagrant_dir, env=env)
@@ -285,10 +292,10 @@ than one can be added in one run. Some
                        )
 
         # Save artifact to the project root
-        artifact_dest = os.path.join(proj_dir, 'boot.img.gz')
+        artifact_dest = os.path.join(proj_dir, img_file)
         if os.path.exists(artifact_dest):
             os.remove(artifact_dest)
-        os.rename(os.path.join(vagrant_dir, 'boot.img.gz'), artifact_dest)
+        os.rename(os.path.join(vagrant_dir, img_file), artifact_dest)
 
     if 'winclone_bundle' in run_steps:
         if not os.path.isdir(wc_res_source):

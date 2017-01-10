@@ -1,14 +1,13 @@
 #!/bin/bash
 
 OUTPUT_IMAGE_FORMAT="$1"
-# this should be the synced folder root
-OUTPUT_DIR=/vagrant/
+OUTPUT_PATH="$2"
 
-apt-get install -y pigz
+apt-get update
 
 # winclone output
 if [ "$OUTPUT_IMAGE_FORMAT" == "winclone" ]; then
-	OUTPUT_PATH="${OUTPUT_DIR}/boot.img.gz"
+	apt-get install -y pigz
 	# Clone and pipe through pigz
 	ntfsclone \
 		--quiet \
@@ -20,7 +19,6 @@ fi
 
 # wim output
 if [ "$OUTPUT_IMAGE_FORMAT" == "wim" ]; then
-	OUTPUT_PATH="${OUTPUT_DIR}/boot.wim"
 	apt-get install -y wimtools
 	WIMLIB_IMAGEX_USE_UTF8=1 wimcapture /dev/sdb1 "${OUTPUT_PATH}" --boot
 fi

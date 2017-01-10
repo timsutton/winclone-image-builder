@@ -29,5 +29,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   # Perform the actual image capture operation
-  config.vm.provision "shell", path: "./capture_image.sh", args: ENV["OUTPUT_IMAGE_FORMAT"]
+  config.vm.provision "shell" do |s|
+    s.path = "./capture_image.sh"
+    s.args = [ENV["OUTPUT_IMAGE_FORMAT"], ENV["OUTPUT_PATH"]]
+  end
 end
