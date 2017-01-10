@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # use PuPHPet because they provide both virtualbox and vmware_desktop
+  config.vm.box = "puphpet/ubuntu1404-x64"
+  # Pinning to older version as newer version v20161004 seems to not have proper
+  # VMware tools configuration
+  config.vm.box_version = '=20151201'
+
+  %w(virtualbox vmware_fusion).each do |provider|
+    config.vm.provider provider do |v|
+      v.cpus = 4
+      v.memory = 4096
+      # v.gui = true
+    end
+  end
+
+  # Adding disks depending on provider
+  config.vm.provider "vmware_fusion" do |v|
+    v.vmx["scsi0:1.present"]  = "TRUE"
+    v.vmx["scsi0:1.filename"]  = ENV["VMDK_PATH"]
+  end
+
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", "1", "--device", "0", "--type", "hdd", "--medium", ENV["VDI_PATH"]]
+  end
+
+  # Perform the actual image capture operation
+  config.vm.provision "shell", path: "./capture_image.sh", args: ENV["OUTPUT_IMAGE_FORMAT"]
+end

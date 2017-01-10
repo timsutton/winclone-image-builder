@@ -29,8 +29,8 @@
             </DiskConfiguration>
             <UserData>
                 <AcceptEula>true</AcceptEula>
-                <FullName>User</FullName>
-                <Organization>My Organization</Organization>
+                <FullName>My Name</FullName>
+                <Organization>Org Name</Organization>
                 <ProductKey>
                     <WillShowUI>Never</WillShowUI>
                 </ProductKey>
@@ -70,16 +70,25 @@
     <settings pass="oobeSystem">
         <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
             <UserAccounts>
+
+          <!-- We set this because if we don't, the next reboot started by win-updates.ps1 will put the user in a non-admin context, which we need for our finalizing tasks
+               No idea why but this seems to require plaintext. If not, Windows install throws an error.
+               More info that's related and pretty much unhelpful:
+               https://msdn.microsoft.com/en-us/library/windows/hardware/dn898563(v=vs.85).aspx -->
+              <AdministratorPassword>
+      					  <Value>PLAINTEXT_ADMIN_PASSWORD</Value>
+      					  <PlainText>true</PlainText>
+      				</AdministratorPassword>
             	<LocalAccounts>
                     <LocalAccount wcm:action="add">
                         <Password>
-                            <Value>vagrant</Value>
-                            <PlainText>true</PlainText>
+                            <Value>ENCODED_ADMIN_PASSWORD</Value>
+                            <PlainText>false</PlainText>
                         </Password>
-                        <Description>Vagrant admin account for Packer provisioning</Description>
-                        <DisplayName>Vagrant</DisplayName>
+                        <Description>Local admin account</Description>
+                        <DisplayName>localadminuser</DisplayName>
                         <Group>Administrators</Group>
-                        <Name>vagrant</Name>
+                        <Name>localadminuser</Name>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
@@ -91,15 +100,11 @@
             </OOBE>
             <AutoLogon>
                 <Password>
-                    <Value>vagrant</Value>
-                    <PlainText>true</PlainText>
+                    <Value>ENCODED_ADMIN_PASSWORD</Value>
+                    <PlainText>false</PlainText>
                 </Password>
-<!-- 
-                <LogonCount>1</LogonCount>
- -->
                 <Enabled>true</Enabled>
-                <Username>vagrant</Username>
-                <Domain />
+                <Username>localadminuser</Username>
             </AutoLogon>
             <FirstLogonCommands>
                 <SynchronousCommand wcm:action="add">
@@ -108,13 +113,24 @@
                     <Order>1</Order>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd.exe /c reg add "HKLM\System\CurrentControlSet\Control\Network\NewNetworkWindowOff"</CommandLine>
+                    <Description>Network prompt</Description>
+                    <Order>3</Order>
+                    <RequiresUserInput>true</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd.exe /c reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" /v "AutoConnectAllowedOEM" /t REG_DWORD /d 0 /f</CommandLine>
+                    <Description>Disable auto Wi-Fi Sense</Description>
+                    <Order>6</Order>
+                    <RequiresUserInput>true</RequiresUserInput>
+                </SynchronousCommand>
 
                 <SynchronousCommand wcm:action="add">
                     <CommandLine>cmd.exe /c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File a:\copy_files.ps1</CommandLine>
-                    <Order>2</Order>
+                    <Order>10</Order>
                     <Description>Copy post-restore files to Extras</Description>
                 </SynchronousCommand>
-
 
                 <SynchronousCommand wcm:action="add">
                     <CommandLine>%SystemRoot%\System32\reg.exe ADD HKLM\SYSTEM\CurrentControlSet\Control\Power\ /v HibernateFileSizePercent /t REG_DWORD /d 0 /f</CommandLine>
@@ -128,21 +144,49 @@
                 </SynchronousCommand>
 
                 <SynchronousCommand wcm:action="add">
-                    <CommandLine>cmd.exe /c wmic useraccount where "name='vagrant'" set PasswordExpires=FALSE</CommandLine>
+                    <CommandLine>cmd.exe /c wmic useraccount where "name='localadminuser'" set PasswordExpires=FALSE</CommandLine>
                     <Order>31</Order>
-                    <Description>Disable password expiration for vagrant user</Description>
+                    <Description>Disable password expiration for localadminuser user</Description>
+                </SynchronousCommand>
+                <!-- http://ccmexec.com/2015/11/remove-the-onedrive-setup-during-osd-in-windows-10/ -->
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd.exe /c a:\skip-onedrive-setup.cmd</CommandLine>
+                    <Order>40</Order>
+                    <Description>Skip OneDrive setup for the default user profile</Description>
                 </SynchronousCommand>
 
-			<!-- DISABLING MS UPDATES JUST TO SPEED UP UPDATE CHECKS DURING TESTING -->
+                <!-- With LTSB we don't need to bother with Cortana -->
                 <!-- <SynchronousCommand wcm:action="add">
+                    <CommandLine>%SystemRoot%\System32\reg.exe ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCortana /t REG_DWORD /d 0 /f</CommandLine>
+                    <Order>41</Order>
+                    <Description>Disable Cortana</Description>
+                </SynchronousCommand> -->
+
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd.exe /c a:\install-7zip.bat</CommandLine>
+                    <Description>Install 7-Zip</Description>
+                    <Order>50</Order>
+                    <RequiresUserInput>true</RequiresUserInput>
+                </SynchronousCommand>
+
+                <!-- Comment out this Office install if you need to speed things up for testing -->
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd.exe /c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File a:\install-office2016.ps1</CommandLine>
+                    <Description>Install Office 2016</Description>
+                    <Order>55</Order>
+                    <RequiresUserInput>true</RequiresUserInput>
+                </SynchronousCommand>
+
+                <SynchronousCommand wcm:action="add">
                     <CommandLine>cmd.exe /c a:\microsoft-updates.bat</CommandLine>
                     <Order>98</Order>
                     <Description>Enable Microsoft Updates</Description>
-                </SynchronousCommand> -->
+                </SynchronousCommand>
 
-<!-- Add "-SkipUpdates true" to the command below to skip updates, for speeding up testing -->
+                <!-- Set the '-SkipUpdates' option for win-updates.ps1 to something (i.e. 'true') to skip the lengthy updates installation process, for testing
+                     purposes. Note that the command still needs to run because it performs other cleanup tasks, including invoking Sysprep. -->
                 <SynchronousCommand wcm:action="add">
-                    <CommandLine>cmd.exe /c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File a:\win-updates.ps1 -MaxUpdatesPerCycle 50 -DoneScript a:\winrm.bat</CommandLine>
+                    <CommandLine>cmd.exe /c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File a:\win-updates.ps1</CommandLine>
                     <Description>Install Windows Updates</Description>
                     <Order>100</Order>
                     <RequiresUserInput>true</RequiresUserInput>

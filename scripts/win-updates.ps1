@@ -2,58 +2,49 @@ param($global:RestartRequired=0,
         $global:MoreUpdates=0,
         $global:MaxCycles=5,
         $MaxUpdatesPerCycle=500,
-        $DoneScript='',
         $SkipUpdates=$false)
 
-$Logfile = "$Env:windir\Temp\win-updates.log"
+$Logfile = "C:\Extras\win-updates.log"
 
 function ShrinkDisk() {
-# We could do the following if we were using at least PS 3.0, but Windows 7 is 2.0
-# 	$MinSize = (Get-PartitionSupportedSize -DriveLetter c).SizeMin
-# 	$MinSizeWithHeadroom = $MinSize + (($MinSize / 100) * 2)
-# 	Resize-Partition -DriveLetter c -Size $MinSizeWithHeadroom
-#
-# scripting diskpart.exe would work, except that I seem to have issues calling
-# a diskpart script that contains 'shrink' directives. the usage info just gets
-# printed back out, even though I can run these commands in sequence in the
-# interactive mode of diskpart.
-#
-# $DiskPartScriptPath = $Env:windir + "\Temp\DiskPart.txt"
-# @'
-# SELECT DISK 0
-# SELECT PARTITION 1
-# SHRINK
-# '@ | Out-File -FilePath $DiskPartScriptPath
-#
-# Invoke-Expression "diskpart /s $($DiskPartScriptPath)"
+  # This requires at least PS 3.0
+  $MinSize = (Get-PartitionSupportedSize -DriveLetter C).SizeMin
+  $MinSizeWithHeadroom = $MinSize + (($MinSize / 100) * 25)
+  Resize-Partition -DriveLetter C -Size $MinSizeWithHeadroom
+}
+
+function EnableUAC() {
+    # This assumes the key is set. It's at least already set to 0 via offlineServicing in AutoUnattend.xml where EnableLUA is false
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 1 -Type DWord
+}
+
+function Cleanup() {
+    # Office installer files we'll never need because we don't re-configure it
+    Remove-Item -Recurse -Force "$Env:SYSTEMDRIVE\msocache"
+
+    Stop-Service wuauserv
+    Remove-Item -Recurse -Force "$Env:SYSTEMROOT\SoftwareDistribution\Download"
+    New-Item -ItemType directory -Path "$Env:SYSTEMROOT\SoftwareDistribution\Download"
+    Start-Service wuauserv
 }
 
 function CallSysprep() {
-	LogWrite "Done with updates, invoking sysprep!"
-	Invoke-Expression "$Env:SYSTEMROOT\System32\Sysprep\sysprep /generalize /oobe /shutdown /unattend:$Env:SYSTEMDRIVE\extras\unattend_capture.xml"
+  LogWrite "Done with updates, invoking sysprep!"
+  Invoke-Expression "$Env:SYSTEMROOT\System32\Sysprep\sysprep /generalize /oobe /shutdown /unattend:a:\unattend_capture.xml"
 }
-
-function CopyLegacyBootFiles() {
-	$BootRoot = "$Env:SYSTEMDRIVE\Boot"
-	# Should already exist..
-	# New-Item -ItemType Directory -Force -Path $BootRoot
-	Copy-Item "$Env:windir\Boot\PCAT\bootmgr" $BootRoot
-#	Copy-Item "$Env:windir\Boot\Fonts" $BootRoot
-}
-
-$Logfile = "C:\Windows\Temp\win-updates.log"
 
 function Finish() {
-	CopyLegacyBootFiles
-	# ShrinkDisk
-	# CallSysprep
-	Invoke-Expression "$($DoneScript)"
+    EnableUAC
+    Cleanup
+    ShrinkDisk
+    CallSysprep
 }
 
 function LogWrite {
    Param ([string]$logstring)
    $now = Get-Date -format s
-   Add-Content $Logfile -value "$now $logstring"
+  # Leaving this out because of permissions issues on the 2nd invocation
+  #   Add-Content $Logfile -value "$now $logstring"
    Write-Host $logstring
 }
 
@@ -75,17 +66,17 @@ function Check-ContinueRestartOrEnd() {
                 Install-WindowsUpdates
             } elseif ($script:Cycles -gt $global:MaxCycles) {
                 LogWrite "Exceeded Cycle Count - Stopping"
-				Finish
+                Finish
             } else {
                 LogWrite "Done Installing Windows Updates"
-				Finish
+                Finish
             }
         }
         1 {
             $prop = (Get-ItemProperty $RegistryKey).$RegistryEntry
             if (-not $prop) {
                 LogWrite "Restart Registry Entry Does Not Exist - Creating It"
-                Set-ItemProperty -Path $RegistryKey -Name $RegistryEntry -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File $($script:ScriptPath) -MaxUpdatesPerCycle $($MaxUpdatesPerCycle) -DoneScript $($DoneScript)"
+                Set-ItemProperty -Path $RegistryKey -Name $RegistryEntry -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File $($script:ScriptPath) -MaxUpdatesPerCycle $($MaxUpdatesPerCycle)"
             } else {
                 LogWrite "Restart Registry Entry Exists Already"
             }
@@ -170,7 +161,7 @@ function Install-WindowsUpdates() {
         LogWrite 'No updates available to install...'
         $global:MoreUpdates=0
         $global:RestartRequired=0
-		Finish
+    Finish
         break
     }
 
@@ -269,15 +260,17 @@ $script:SearchResult = New-Object -ComObject 'Microsoft.Update.UpdateColl'
 $script:Cycles = 0
 $script:CycleUpdateCount = 0
 
+
 # Jump to the end of this script if we set $SkipUpdates
 if ($SkipUpdates) {
-	Finish
+    LogWrite "SkipUpdates was set, so skipping to the finalize phase."
+    Finish
 }
 else {
-	Check-WindowsUpdates
-	if ($global:MoreUpdates -eq 1) {
-		Install-WindowsUpdates
-	} else {
-		Check-ContinueRestartOrEnd
-	}
+  Check-WindowsUpdates
+  if ($global:MoreUpdates -eq 1) {
+    Install-WindowsUpdates
+  } else {
+    Check-ContinueRestartOrEnd
+  }
 }

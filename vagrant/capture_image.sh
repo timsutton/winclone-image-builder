@@ -4,20 +4,21 @@ OUTPUT_IMAGE_FORMAT="$1"
 # this should be the synced folder root
 OUTPUT_DIR=/vagrant/
 
+apt-get install -y pigz
+
 # winclone output
 if [ "$OUTPUT_IMAGE_FORMAT" == "winclone" ]; then
-	OUTPUT_PATH="${OUTPUT_DIR}/boot.img"
-	# Clone
+	OUTPUT_PATH="${OUTPUT_DIR}/boot.img.gz"
+	# Clone and pipe through pigz
 	ntfsclone \
 		--quiet \
 		--save-image \
-		--overwrite "${OUTPUT_PATH}" \
-		/dev/sdb1
-	# Compress
-	gzip --force "${OUTPUT_PATH}"
+		--output - \
+		/dev/sdb1 | \
+	pigz > "${OUTPUT_PATH}"
 fi
 
-# wim output
+# wim output (not tested in quite a while)
 if [ "$OUTPUT_IMAGE_FORMAT" == "wim" ]; then
 	OUTPUT_PATH="${OUTPUT_DIR}/boot.wim"
 	echo "deb http://ppa.launchpad.net/nilarimogard/webupd8/ubuntu trusty main" > /etc/apt/sources.list.d/webupd8.list

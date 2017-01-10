@@ -1,0 +1,69 @@
+{
+  "builders": [
+    {
+    "type": "vmware-iso",
+    "iso_url": "iso/SW_DVD5_WIN_ENT_LTSB_2016_64BIT_English_MLF_X21-07421.ISO",
+    "iso_checksum": "e39ea2af41b3710682fe3bbdac35ec9a",
+    "iso_checksum_type": "md5",
+    "headless": false,
+	  "skip_compaction": true,
+    "communicator": "winrm",
+    "winrm_username": "unused",
+    "winrm_password": "unused",
+    "winrm_timeout": "120m",
+	  "guest_os_type": "windows8srv-64",
+    "floppy_files": [
+      "./answer_files/10/Autounattend.xml",
+      "./answer_files/10/unattend_capture.xml",
+      "./scripts/BackToMyMac.cmd",
+      "./scripts/BootCamp.ps1",
+      "./scripts/brigadier.plist",
+      "./scripts/copy_files.ps1",
+      "./scripts/install-7zip.bat",
+      "./scripts/install-office2016.ps1",
+      "./scripts/install-sophos.bat",
+      "./scripts/microsoft-updates.bat",
+      "./scripts/skip-onedrive-setup.cmd",
+      "./scripts/win-updates.ps1"
+      ],
+      "vmx_data": {
+        "RemoteDisplay.vnc.enabled": "false",
+        "RemoteDisplay.vnc.port": "5900",
+        "memsize": "4096",
+        "numvcpus": "2",
+        "scsi0.virtualDev": "lsisas1068"
+      }
+    },
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "iso/SW_DVD5_WIN_ENT_LTSB_2016_64BIT_English_MLF_X21-07421.ISO",
+      "iso_checksum": "e39ea2af41b3710682fe3bbdac35ec9a",
+      "iso_checksum_type": "md5",
+      "headless": false,
+	    "communicator": "winrm",
+      "winrm_username": "unused",
+      "winrm_password": "unused",
+      "winrm_timeout": "60m",
+	    "guest_additions_mode": "disable",
+	    "guest_os_type": "Windows10_64",
+      "floppy_files": [
+        "./answer_files/10/Autounattend.xml",
+        "./answer_files/10/unattend_capture.xml",
+        "./scripts/BackToMyMac.cmd",
+        "./scripts/brigadier.plist",
+        "./scripts/BootCamp.ps1",
+        "./scripts/copy_files.ps1",
+        "./scripts/install-7zip.bat",
+        "./scripts/install-office2016.ps1",
+        "./scripts/install-sophos.bat",
+        "./scripts/microsoft-updates.bat",
+        "./scripts/skip-onedrive-setup.cmd",
+        "./scripts/win-updates.ps1"
+      ],
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "4096"],
+        ["modifyvm", "{{.Name}}", "--cpus", "2"]
+      ]
+    }
+  ]
+}
