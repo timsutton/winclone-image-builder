@@ -283,13 +283,13 @@ than one can be added in one run. Some
         env["OUTPUT_PATH"] = os.path.join(img_output_root, img_file)
 
         # Vagrant up
-        subprocess.call([vagrant_bin, 'up'], cwd=vagrant_dir, env=env)
+        subprocess.check_call([vagrant_bin, 'up'], cwd=vagrant_dir, env=env)
 
         # Vagrant destroy
-        subprocess.call([vagrant_bin, 'destroy', '--force'],
-                        cwd=vagrant_dir,
-                        env=env
-                       )
+        subprocess.check_call([vagrant_bin, 'destroy', '--force'],
+                              cwd=vagrant_dir,
+                              env=env
+                             )
 
         # Save artifact to the project root
         artifact_dest = os.path.join(proj_dir, img_file)
