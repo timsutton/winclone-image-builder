@@ -6,12 +6,12 @@
     "iso_checksum": "e39ea2af41b3710682fe3bbdac35ec9a",
     "iso_checksum_type": "md5",
     "headless": false,
-	  "skip_compaction": true,
+    "skip_compaction": true,
     "communicator": "winrm",
     "winrm_username": "unused",
     "winrm_password": "unused",
     "winrm_timeout": "120m",
-	  "guest_os_type": "windows8srv-64",
+    "guest_os_type": "windows9-64",
     "floppy_files": [
       "./answer_files/10/Autounattend.xml",
       "./answer_files/10/unattend_capture.xml",
@@ -32,6 +32,7 @@
         "memsize": "4096",
         "numvcpus": "2",
         "scsi0.virtualDev": "lsisas1068"
+        "virtualHW.version": "12"
       }
     },
     {
