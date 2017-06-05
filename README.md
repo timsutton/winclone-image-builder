@@ -2,7 +2,7 @@
 
 This repo is a collection of tools and scripts that can be used to automatically build a Windows image from start to finish in a virtual machine, and was written for imaging Windows onto labs of Mac computers. By default it will build the image in a format compatible with [Winclone](https://twocanoes.com/products/mac/winclone) or [DeployStudio](http://www.deploystudio.com). [Winclone Pro](https://twocanoes.com/products/mac/winclone#pro) also supports installing these images via a self-extracting bundle-style macOS installer package, which this tool can also produce.
 
-It can also output the image in WIM format, using [wimlib](https://wimlib.net) tools to build the image.
+It can also output the image in WIM format, using [wimlib](https://wimlib.net) tools to build the image. Winclone 6, released after this tool was originally written, now also uses the WIM format to store the image. This tool hasn't yet been tested with Winclone 6 - WIM support should be possible but it's likely going to need some minor changes to be compatible with how Winclone 6 expects the image bundle to be laid out.
 
 This particular image is used in dual-boot labs managed by this project's maintainer. It is a fully up-to-date Windows 10 LTSB installation including Office 2016, Sophos and the BootCamp drivers. LTSB isn't strictly required, but it's what we're using currently.
 
