@@ -31,7 +31,7 @@
         "RemoteDisplay.vnc.port": "5900",
         "memsize": "4096",
         "numvcpus": "2",
-        "scsi0.virtualDev": "lsisas1068"
+        "scsi0.virtualDev": "lsisas1068",
         "virtualHW.version": "12"
       }
     },
@@ -41,12 +41,12 @@
       "iso_checksum": "e39ea2af41b3710682fe3bbdac35ec9a",
       "iso_checksum_type": "md5",
       "headless": false,
-	    "communicator": "winrm",
+      "communicator": "winrm",
       "winrm_username": "unused",
       "winrm_password": "unused",
       "winrm_timeout": "60m",
-	    "guest_additions_mode": "disable",
-	    "guest_os_type": "Windows10_64",
+      "guest_additions_mode": "disable",
+      "guest_os_type": "Windows10_64",
       "floppy_files": [
         "./answer_files/10/Autounattend.xml",
         "./answer_files/10/unattend_capture.xml",
